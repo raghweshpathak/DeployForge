@@ -1,0 +1,10 @@
+services:
+  deployforge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: deployforge:latest
+    container_name: deployforge-container
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
