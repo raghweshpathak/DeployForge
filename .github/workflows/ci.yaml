@@ -46,3 +46,34 @@ jobs:
 
       - name: Verify Docker image
         run: docker image inspect deployforge:${{ github.sha }}
+      - name: Run Docker container
+        run: |
+          docker run -d \
+            --name deployforge-test \
+            --publish 127.0.0.1:8000:8000 \
+            deployforge:${{ github.sha }}
+
+      - name: Verify container health
+        run: |
+          for i in {1..30}; do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' deployforge-test)
+            echo "Container health: $STATUS"
+
+            if [ "$STATUS" = "healthy" ]; then
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          docker logs deployforge-test
+          exit 1
+
+      - name: Test application endpoints
+        run: |
+          curl --fail http://127.0.0.1:8000/
+          curl --fail http://127.0.0.1:8000/health
+
+      - name: Stop test container
+        if: always()
+        run: docker rm -f deployforge-test || true
