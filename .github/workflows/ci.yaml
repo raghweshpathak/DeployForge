@@ -32,3 +32,17 @@ jobs:
 
       - name: Run automated tests
         run: python -m pytest -v
+  build:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build --tag deployforge:${{ github.sha }} .
+
+      - name: Verify Docker image
+        run: docker image inspect deployforge:${{ github.sha }}
